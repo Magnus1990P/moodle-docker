@@ -1,0 +1,111 @@
+name: Build images
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      moodle_version:
+        description: 'Moodle release to build (e.g. 5.2.1), or "latest" for the newest stable release'
+        required: true
+        default: latest
+      php_version:
+        description: 'PHP version for the fpm image'
+        required: true
+        default: '8.4'
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MOODLE_REPO: https://github.com/moodle/moodle.git
+
+jobs:
+  # Resolve the version once so both images are built from the same release
+  # and tagged with the real version number.
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      minor: ${{ steps.version.outputs.minor }}
+      is_latest: ${{ steps.version.outputs.is_latest }}
+      owner: ${{ steps.version.outputs.owner }}
+    steps:
+      - name: Resolve Moodle version
+        id: version
+        env:
+          REQUESTED: ${{ inputs.moodle_version || 'latest' }}
+        run: |
+          set -euo pipefail
+          requested="${REQUESTED#v}"
+          if [ "$requested" = "latest" ]; then
+            version="$(git ls-remote --tags --refs "$MOODLE_REPO" 'v*' \
+              | sed 's#.*refs/tags/v##' \
+              | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' \
+              | sort -V | tail -n 1)"
+            is_latest=true
+          else
+            version="$requested"
+            is_latest=false
+          fi
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Not a Moodle release version: '$version'" >&2
+            exit 1
+          fi
+          {
+            echo "version=$version"
+            echo "minor=${version%.*}"
+            echo "is_latest=$is_latest"
+            echo "owner=${GITHUB_REPOSITORY_OWNER,,}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Building Moodle **$version** (requested: $REQUESTED)" >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    needs: resolve
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [fpm, nginx]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ needs.resolve.outputs.owner }}/moodle-${{ matrix.target }}
+          tags: |
+            type=raw,value=${{ needs.resolve.outputs.version }}
+            type=raw,value=${{ needs.resolve.outputs.minor }}
+            type=raw,value=latest,enable=${{ needs.resolve.outputs.is_latest }}
+          labels: |
+            org.opencontainers.image.title=moodle-${{ matrix.target }}
+            org.opencontainers.image.version=${{ needs.resolve.outputs.version }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: ${{ matrix.target }}
+          push: true
+          # Always pull the rolling base images so rebuilds pick up OS/PHP patches.
+          pull: true
+          build-args: |
+            MOODLE_VERSION=${{ needs.resolve.outputs.version }}
+            PHP_VERSION=${{ inputs.php_version || '8.4' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.target }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.target }}

@@ -1,0 +1,3 @@
+# Only conf/ is needed in the build context; Moodle itself is fetched during the build.
+*
+!conf/
