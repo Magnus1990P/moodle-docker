@@ -46,6 +46,28 @@ With `MOODLE_VERSION=latest`, a local build can reuse a cached source layer from
 older release. Pass an explicit version or `--no-cache`. CI always passes the
 resolved version, so it doesn't have this problem.
 
+## Plugins and themes
+
+The Moodle code is part of the image. At runtime it's read-only, and NGINX and FPM
+each have their own copy. So Moodle's web installer ("Install plugin from ZIP file")
+can't work. Plugins are added at build time instead:
+
+1. Add a line to [plugins.txt](plugins.txt): the directory under `public/`
+   (e.g. `theme/moon`), then a `.zip` URL or `<git-url>@<ref>`. Pick a plugin
+   release that supports the Moodle version you build.
+2. Push to `main`. Note that this builds `latest`, so if a newer Moodle release is
+   out, run the workflow manually with your current `x.y.z` instead.
+3. Restart the deployment so it pulls the rebuilt tag. Then run
+   `php admin/cli/upgrade.php --non-interactive` in the fpm container, which
+   installs the new plugins' database tables.
+
+To remove a plugin, uninstall it in Moodle first (Site administration → Plugins →
+Plugins overview), then delete its line and rebuild.
+
+Rebuilding overwrites the existing `<x.y.z>` tag with the new plugin set. Run with
+`imagePullPolicy: Always`, or nodes will keep the old image cached. Set
+`$CFG->disableupdateautodeploy = true;` in `config.php` to hide the web installer.
+
 ## Running
 
 The two containers must share a network namespace, because NGINX reaches FPM on

@@ -1,3 +1,6 @@
-# Only conf/ is needed in the build context; Moodle itself is fetched during the build.
+# Only conf/ and the plugin list are needed in the build context; Moodle itself
+# is fetched during the build.
 *
 !conf/
+!plugins.txt
+!scripts/

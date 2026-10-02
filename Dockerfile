@@ -36,6 +36,16 @@ RUN set -eu; \
     echo "$version" > /moodle/.image-version
 
 # ---------------------------------------------------------------------------
+# plugins: add the third-party plugins listed in plugins.txt. A separate stage,
+# so editing the list doesn't re-fetch Moodle. The code is read-only at
+# runtime, so this is the only way to add plugins (the web installer can't).
+# ---------------------------------------------------------------------------
+FROM src AS plugins
+RUN apk add --no-cache curl unzip
+COPY plugins.txt scripts/install-plugins.sh /tmp/
+RUN sh /tmp/install-plugins.sh /tmp/plugins.txt /moodle
+
+# ---------------------------------------------------------------------------
 # php-base: PHP-FPM with the extensions and settings Moodle requires.
 # ---------------------------------------------------------------------------
 FROM php:${PHP_VERSION}-fpm AS php-base
@@ -55,7 +65,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends git unzip \
  && rm -rf /var/lib/apt/lists/*
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
-COPY --from=src /moodle /moodle
+COPY --from=plugins /moodle /moodle
 WORKDIR /moodle
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --classmap-authoritative --no-interaction --no-progress
