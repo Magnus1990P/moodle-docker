@@ -14,7 +14,7 @@
 # Examples:
 #   theme/boost_union   https://moodle.org/plugins/download.php/<id>/theme_boost_union_moodle50_<build>.zip
 #   mod/attendance      https://github.com/danmarsden/moodle-mod_attendance.git@<tag>
+local/moon    https://release-assets.githubusercontent.com/github-production-release-asset/1100220722/003f2a37-c142-4b42-8987-f6fe2526d605
 theme/moon  https://release-assets.githubusercontent.com/github-production-release-asset/1100220722/3ceea53a-2448-4bff-8a1d-3c37b5bdcd6e
-theme/local-moon    https://release-assets.githubusercontent.com/github-production-release-asset/1100220722/003f2a37-c142-4b42-8987-f6fe2526d605
 theme/eadflix   https://codeload.github.com/EduardoKrausME/moodle-theme_eadflix/zip/refs/heads/master
 theme/eadtraining   https://codeload.github.com/EduardoKrausME/moodle-theme_eadtraining/zip/refs/heads/master
