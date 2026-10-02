@@ -5,8 +5,9 @@
 #   directory  where the plugin lives in Moodle 5.1+, e.g. theme/<name>,
 #              mod/<name>, blocks/<name>, local/<name>, admin/tool/<name>,
 #              course/format/<name>, question/type/<name>
-#   source     a .zip URL (e.g. the moodle.org "Download" link for your Moodle
-#              version), or <git-url>@<tag|branch|commit>
+#   source     a ZIP download URL (moodle.org "Download" link, or a GitHub
+#              https://github.com/<owner>/<repo>/releases/download/<tag>/<file>.zip),
+#              or <git-url>.git@<tag|branch|commit>
 #
 # After a rebuild, deploy and run admin/cli/upgrade.php to install the plugins
 # (see README). To remove one, uninstall it in Moodle first, then drop the line.

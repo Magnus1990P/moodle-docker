@@ -25,7 +25,17 @@ tr -d '\r' < "$list" | grep -Ev '^[[:space:]]*(#|$)' | while read -r path source
     rm -rf "$work"
     mkdir -p "$work" "$(dirname "$dest")"
     case "$source" in
-        *.zip | *.zip\?*)
+        *.git@*)
+            # Fetch by ref, so tags, branches and commit SHAs all work.
+            git -C "$work" init -q
+            git -C "$work" fetch -q --depth 1 "${source%@*}" "${source##*@}"
+            git -C "$work" checkout -q FETCH_HEAD
+            rm -rf "$work/.git"
+            mv "$work" "$dest"
+            ;;
+        http://* | https://* | file://*)
+            # Any other URL is a ZIP download (moodle.org, GitHub releases,
+            # codeload archives); the URL doesn't have to end in .zip.
             curl -fsSL -o "$tmp/plugin.zip" "$source"
             unzip -q "$tmp/plugin.zip" -d "$work"
             rm -rf "$work/__MACOSX"
@@ -37,16 +47,8 @@ tr -d '\r' < "$list" | grep -Ev '^[[:space:]]*(#|$)' | while read -r path source
             fi
             mv "$1" "$dest"
             ;;
-        *@*)
-            # Fetch by ref, so tags, branches and commit SHAs all work.
-            git -C "$work" init -q
-            git -C "$work" fetch -q --depth 1 "${source%@*}" "${source##*@}"
-            git -C "$work" checkout -q FETCH_HEAD
-            rm -rf "$work/.git"
-            mv "$work" "$dest"
-            ;;
         *)
-            echo "$path: source must be a .zip URL or <git-url>@<ref>" >&2
+            echo "$path: source must be a ZIP URL or <git-url>.git@<ref>" >&2
             exit 1
             ;;
     esac

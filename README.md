@@ -53,7 +53,7 @@ each have their own copy. So Moodle's web installer ("Install plugin from ZIP fi
 can't work. Plugins are added at build time instead:
 
 1. Add a line to [plugins.txt](plugins.txt): the directory under `public/`
-   (e.g. `theme/moon`), then a `.zip` URL or `<git-url>@<ref>`. Pick a plugin
+   (e.g. `theme/moon`), then a ZIP download URL or `<git-url>.git@<ref>`. Pick a plugin
    release that supports the Moodle version you build.
 2. Push to `main`. Note that this builds `latest`, so if a newer Moodle release is
    out, run the workflow manually with your current `x.y.z` instead.
