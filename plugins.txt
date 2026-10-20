@@ -20,3 +20,6 @@ theme/moon  https://github.com/templaza/moodle-local_moon/releases/download/v1.0
 theme/eadflix   https://codeload.github.com/EduardoKrausME/moodle-theme_eadflix/zip/refs/heads/master
 theme/eadtraining   https://codeload.github.com/EduardoKrausME/moodle-theme_eadtraining/zip/refs/heads/master
 enrol/autoenrol     https://github.com/bobopinna/moodle-enrol_autoenrol/archive/refs/tags/v2.4.1.zip
+local/boost_dark    https://github.com/EduardoKrausME/moodle-local_boost_dark/archive/refs/tags/1.4.5.zip
+theme/academi       https://github.com/lmsace/academi/archive/refs/tags/v5.2.2.zip
+theme/degrade       https://github.com/EduardoKrausME/moodle-theme_degrade/archive/refs/tags/9.8.1.zip

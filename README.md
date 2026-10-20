@@ -27,10 +27,22 @@ every push to `main` and on manual dispatch:
   [release notes](https://moodledev.io/general/releases) for the range each Moodle
   release supports.
 
-Each build pushes the tags `<x.y.z>`, `<x.y>` and, for `latest` builds only, `latest`.
-The Moodle version inside an image is recorded in `/var/www/moodle/.image-version`.
-**Pin deployments to `<x.y.z>`**: a Moodle version change needs a database upgrade
-(`admin/cli/upgrade.php`), so it should be a deliberate step.
+Each build pushes these tags:
+
+| Tag | Example | Moves? |
+|---|---|---|
+| `<x.y.z>.<run>` | `5.2.3.17` | Never. One per build: Moodle version plus the workflow run number |
+| `<x.y.z>` | `5.2.3` | Every rebuild of that release (plugin changes, base image patches) |
+| `<x.y>` | `5.2` | Every rebuild of that minor version |
+| `latest` | | `latest` builds only |
+
+The run summary shows the `<x.y.z>.<run>` tag. **Pin deployments to it**, so a
+rebuild never changes a running site behind your back and a rollback is just the
+previous tag. Every new tag needs `admin/cli/upgrade.php` after deploying (new
+plugins, or a new Moodle release), so make it a deliberate step. The tag has four
+numeric parts rather than a `-<run>` suffix, so that Renovate's docker versioning
+sees `5.2.3.18` as an update to `5.2.3.17`. The Moodle version inside an image is
+recorded in `/var/www/moodle/.image-version`.
 
 The base images use rolling tags (`php:<ver>-fpm`, `nginx-unprivileged:stable-alpine`),
 so rebuilding also picks up OS and PHP security patches.
@@ -57,16 +69,17 @@ can't work. Plugins are added at build time instead:
    release that supports the Moodle version you build.
 2. Push to `main`. Note that this builds `latest`, so if a newer Moodle release is
    out, run the workflow manually with your current `x.y.z` instead.
-3. Restart the deployment so it pulls the rebuilt tag. Then run
-   `php admin/cli/upgrade.php --non-interactive` in the fpm container, which
-   installs the new plugins' database tables.
+3. Set the deployment's images to the new `<x.y.z>.<run>` tag from the run summary
+   and deploy. Then run `php admin/cli/upgrade.php --non-interactive` in the fpm
+   container, which installs the new plugins' database tables.
 
 To remove a plugin, uninstall it in Moodle first (Site administration → Plugins →
 Plugins overview), then delete its line and rebuild.
 
-Rebuilding overwrites the existing `<x.y.z>` tag with the new plugin set. Run with
-`imagePullPolicy: Always`, or nodes will keep the old image cached. Set
-`$CFG->disableupdateautodeploy = true;` in `config.php` to hide the web installer.
+Rebuilding moves the rolling `<x.y.z>` tag to the new plugin set, but each build's
+`<x.y.z>.<run>` tag stays put. Deployments pinned to a build tag don't need
+`imagePullPolicy: Always`. Set `$CFG->disableupdateautodeploy = true;` in
+`config.php` to hide the web installer.
 
 ## Running
 
