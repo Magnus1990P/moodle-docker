@@ -10,7 +10,7 @@
 # shared volume. Run them side by side (e.g. one Kubernetes pod) with FPM on
 # 127.0.0.1:9000.
 
-ARG PHP_VERSION=8.4
+ARG PHP_VERSION=8.5.12
 
 # ---------------------------------------------------------------------------
 # src: fetch Moodle at build time. MOODLE_VERSION is a release number such as

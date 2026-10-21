@@ -23,7 +23,7 @@ every push to `main` and on manual dispatch:
 
 - `moodle_version`: a release number such as `5.2.1`, or `latest` (default). `latest`
   resolves to the newest stable release tag and skips betas and RCs.
-- `php_version`: PHP version for the `fpm` image (default `8.4`). Check the
+- `php_version`: PHP version for the `fpm` image (default `8.5.12`). Check the
   [release notes](https://moodledev.io/general/releases) for the range each Moodle
   release supports.
 

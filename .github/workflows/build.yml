@@ -12,7 +12,7 @@ on:
       php_version:
         description: 'PHP version for the fpm image'
         required: true
-        default: '8.4'
+        default: '8.5.12'
 
 permissions:
   contents: read
@@ -107,7 +107,7 @@ jobs:
           pull: true
           build-args: |
             MOODLE_VERSION=${{ needs.resolve.outputs.version }}
-            PHP_VERSION=${{ inputs.php_version || '8.4' }}
+            PHP_VERSION=${{ inputs.php_version || '8.5.12' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.target }}
